@@ -8,6 +8,7 @@ import com.ivoyant.payment_service.repository.PaymentRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,13 +22,24 @@ public class PaymentService {
     @Autowired
     private InvoiceRepository invoiceRepository;
 
+    @Transactional
     public Payment initiatePayment(Payment payment) {
         payment.setDate(LocalDateTime.now());
-        payment.setStatus("SUCCESS"); // mock success
+
+        // Mock condition to fail payment
+        if (payment.getAmount() <= 0 || payment.getBookingId() == null) {
+            payment.setStatus("FAILED");
+            paymentRepository.save(payment);
+            log.warn("Payment failed for booking {}", payment.getBookingId());
+            return payment;
+        }
+
+        // Mock success condition
+        payment.setStatus("SUCCESS");
         Payment savedPayment = paymentRepository.save(payment);
         log.info("Payment initiated for booking {}", payment.getBookingId());
 
-        // generate mock invoice
+        // Generate mock invoice only if payment is successful
         Invoice invoice = Invoice.builder()
                 .bookingId(savedPayment.getBookingId())
                 .invoicePdfUrl("http://mock-invoice.com/invoice-" + savedPayment.getId() + ".pdf")
@@ -36,6 +48,7 @@ public class PaymentService {
 
         return savedPayment;
     }
+
 
     public Payment getPaymentById(Integer id) {
         return paymentRepository.findById(id)
