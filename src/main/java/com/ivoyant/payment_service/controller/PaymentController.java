@@ -2,6 +2,7 @@ package com.ivoyant.payment_service.controller;
 
 import com.ivoyant.payment_service.entity.Payment;
 import com.ivoyant.payment_service.service.PaymentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ public class PaymentController {
     private PaymentService paymentService;
 
     @PostMapping
-    public Payment initiatePayment(@RequestBody Payment payment) {
+    public Payment initiatePayment(@Valid @RequestBody Payment payment) {
         log.info("Received payment request for booking {}", payment.getBookingId());
         return paymentService.initiatePayment(payment);
     }
